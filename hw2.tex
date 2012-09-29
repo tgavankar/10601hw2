@@ -93,16 +93,29 @@ We want to minimize this, so take the derivative and set to zero, and solve.
 \part{a}
 Let $l$ be the $lth$ training data entry.
 \begin{eqnarray*}
-W &\leftarrow& argmax_W \prod_l{P(Y^l=k|X^l,W)}\\
-l(W) &=& \sum_{l \in D}{lnP(Y^l|X^l,W)}\\
-l(W) &=& \sum_{l \in D}{ln(  \frac{exp(w_k^Tx)}{1+\sum_{t=1}^{K-1}{exp(w_t^Tx)}}  )}\\
-l(W) &=& \sum_{l \in D}{ln(exp(w_k^Tx)) - ln(1+\sum_{t=1}^{K-1}{exp(w_t^Tx)}))}\\
-l(W) &=& \sum_{l \in D}{w_k^Tx - ln(1+\sum_{t=1}^{K-1}{exp(w_t^Tx)}))}\\
+W &\leftarrow& argmax_W \prod_l{P(Y^l=k|X^l,W)/(\frac{\lambda}{2}||W||^2)}\\
+l(W) &=& \sum_{l \in D}{lnP(Y^l|X^l,W)} - ln(\frac{\lambda}{2}||W||^2)\\
+l(W) &=& \sum_{l \in D}{ln(  \frac{exp(w_k^Tx)}{1+\sum_{t=1}^{K-1}{exp(w_t^Tx)}}  ) - ln(\frac{\lambda}{2}||W||^2)}\\
+l(W) &=& \sum_{l \in D}{ln(exp(w_k^Tx)) - ln(1+\sum_{t=1}^{K-1}{exp(w_t^Tx)})) - ln(\lambda) + ln(2) - 2ln(||W||)}\\
+l(W) &=& \sum_{l \in D}{w_k^Tx - ln(1+\sum_{t=1}^{K-1}{exp(w_t^Tx)})) - ln(\lambda) + ln(2) - 2ln(||W||)}\\
 \end{eqnarray*}
 
 \part{b}
+\begin{eqnarray*}
+l(W) &=& \sum_{l \in D}{lnP(Y^l|X^l,W)} - ln(\frac{\lambda}{2}||W||^2)\\
+\end{eqnarray*}
+By adding the penalty term, we have a new objective to maximize. However, maximizing this new objective corresponds to calculating the MAP estimate for W under the assumption that the prior distribution $P(W)$ is a Normal distribution with mean zero, and a variance related to $\frac{1}{\lambda}$. If $P(W)$ is a zero mean Gaussian distribution, then $lnP(W)$ yields a term proportional to $||W||^2$, so we can work with that.
+\begin{eqnarray*}
+l(W) &=& \sum_{l \in D}{lnP(Y^l|X^l,W)} - lnP(W)\\
+\frac{\partial l(W)}{\partial w_i} &=& \sum_l{X_i^l(Y^l-\hat{P}(Y^l=1|X^l,W))-\lambda w_i}\\
+&=& \eta\sum_l{X_i^l(Y^l-\hat{P}(Y^l=1|X^l,W))-\eta\lambda w_i}\\
+\end{eqnarray*}
 
 \part{c}
+\begin{eqnarray*}
+w_i \leftarrow w_i + \eta\sum_l{X_i^l(Y^l-\hat{P}(Y^l=1|X^l,W))-\eta\lambda w_i}\\
+w_i \leftarrow w_i + v\sum_l{X_i^l(Y^l-\hat{P}(Y^l=1|X^l,W))-v\lambda w_i}\\
+\end{eqnarray*}
 
 \part{d}
 Yes, it will converge to a global maximum because that is where the MLE appears.
@@ -137,5 +150,46 @@ Assuming the conditional independence assumption of NB is not satisfied, then th
 
 \part{d}
 It is not possible for the LR estimated parameters to calculated P(X) because LR calculates P(Y|X), and so since X has to be given, a probability cannot be calculated for it.
+
+\question{4}{Programming}
+\part{a}
+These results are for the full data set.\\
+    \begin{tabular}{|l|l|l|}
+        \hline
+        Algorithm & Naive Bayes & Logistic Regression \\ \hline
+        Learning Time (s) & 16.162 & 88.745 \\ \hline
+        Training Classification Time (s) & 28.41 & 12.012 \\ \hline
+        Training Classification Accuracy (\%) & 96.93 & 98.23 \\ \hline
+        Test Classification Time (s) & 11.255 & 4.763 \\ \hline
+        Test Classification Accuracy (\%) & 98.23 & 97.79 \\
+        \hline
+    \end{tabular}
+
+As you can see, both methods were pretty accurate given the large training data set size.
+
+\includegraphics[scale=0.75]{4a.png}\\
+
+\part{b}
+These results are for the 1000 best feature-selected data set.\\
+
+    \begin{tabular}{|l|l|l|}
+        \hline
+        Algorithm                             & Naive Bayes & Logistic Regression \\ \hline
+        Learning Time (s)                     & 3.189       & 21.470              \\ 
+        Training Classification Time (s)      & 5.507       & 2.342               \\ 
+        Training Classification Accuracy (\%) & 95.89       & 97.79               \\ 
+        Test Classification Time (s)          & 2.176       & 0.929               \\ 
+        Test Classification Accuracy (\%)     & 97.90       & 97.23               \\
+        \hline
+    \end{tabular}
+
+As you can see, the feature-selected data sets were significantly faster while maintaining comparable accuracy. While the accuracy of the feature-selected data was slightly lower on all accounts, the largest difference was with NB training accuracy, decreasing by 1.04\% between the full and feature-selected data sets. 
+
+\includegraphics[scale=0.75]{4b.png}\\
+
+\part{c}
+
+\includegraphics[scale=0.75]{4c.png}\\
+This plot shows that the limit for logistic regression has a higher accuracy than Naive Bayes. This means that the Naive Bayes assumptions do not hold completely in this data set. The Naive Bayes assumptions, if they held, would imply that the limit for accuracy would be equal for the two algorithms. However, because there is more noise/variance (lower accuracy) in Naive Bayes, this means that its assumptions are not completely valid.
 
 \end{document}
